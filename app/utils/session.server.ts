@@ -5,9 +5,6 @@ import { getSessionToken, signOutFirebase, adminAuth } from "~/utils/db.server";
 require("dotenv").config();
 
 const sessionSecret = process.env.SESSION_SECRET;
-if (!sessionSecret) {
-  throw new Error("SESSION_SECRET must be set!");
-}
 
 const storage = createCookieSessionStorage({
   cookie: {

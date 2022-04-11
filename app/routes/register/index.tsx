@@ -1,72 +1,121 @@
 import {
   Flex,
-  Container,
-  Heading,
+  Box,
+  FormControl,
+  FormLabel,
+  Input,
+  InputGroup,
+  HStack,
+  InputRightElement,
   Stack,
-  Text,
   Button,
-  Icon,
-  IconProps,
-  ChakraProvider,
+  Heading,
+  Text,
+  FormErrorMessage,
+  useColorModeValue,
+  Link,
+  VStack,
 } from "@chakra-ui/react";
-import theme from "~/src/theme";
+import { useState } from "react";
+import { Form } from "@remix-run/react";
 
-import Illustration from "~/src/svg/IlustrationChoose";
-export default function CallToActionWithIllustration() {
+import { signUp } from "~/utils/db.server";
+import { createUserSession } from "~/utils/session.server";
+export let action = async ({ request }) => {
+  let formData = await request.formData();
+
+  let email = formData.get("email");
+  let password = formData.get("password");
+
+  const { user } = await signUp(email, password);
+  const token = await user.getIdToken();
+  return createUserSession(token, "/");
+};
+
+export default function SignupCard() {
+  const [showPassword, setShowPassword] = useState(false);
+
   return (
-    <ChakraProvider theme={theme}>
-      <Container maxW={"5xl"} mt={"-20"}>
-        <Stack
-          textAlign={"center"}
-          align={"center"}
-          spacing={{ base: 8, md: 10 }}
-          py={{ base: 20, md: 28 }}
-        >
-          <Heading
-            fontWeight={600}
-            fontSize={{ base: "3xl", sm: "4xl", md: "6xl" }}
-            lineHeight={"110%"}
-          >
-            Meeting scheduling{" "}
-            <Text as={"span"} color={"orange.400"}>
-              made easy
-            </Text>
+    <Flex minH={"100vh"} align={"center"} justify={"center"} mt={"-16"}>
+      <Stack spacing={8} mx={"auto"} maxW={"lg"} py={12} px={6}>
+        <Stack align={"center"}>
+          <Heading fontSize={"4xl"} textAlign={"center"}>
+            Registrate
           </Heading>
-          <Text color={"gray.500"} maxW={"3xl"}>
-            Never miss a meeting. Never be late for one too. Keep track of your
-            meetings and receive smart reminders in appropriate times. Read your
-            smart “Daily Agenda” every morning.
+          <Text
+            fontSize={"lg"}
+            color={"gray.600"}
+            textAlign={{ sm: "center", base: "center" }}
+          >
+            para disfrutar de todas nuestras funciones geniales✌️
           </Text>
-          <Stack spacing={6} direction={"row"}>
-            <Button
-              rounded={"full"}
-              px={6}
-              colorScheme={"orange"}
-              bg={"orange.400"}
-              _hover={{ bg: "orange.500" }}
-            >
-              Comprar
-            </Button>
-            <Button
-              rounded={"full"}
-              px={6}
-              // Probando para que se vean mejor
-              // p={["3", "5", "10"]}
-              bg={"brand.secondary"}
-              color={"white"}
-              _hover={{ bg: "blue.500" }}
-            >
-              Vender
-            </Button>
-          </Stack>
-          <Flex w={"full"}>
-            <Illustration
-              height={{ sm: "24rem", lg: "28rem" }}
-              mt={{ base: 7, sm: 12 }}
-            />
-          </Flex>
         </Stack>
-      </Container>
-    </ChakraProvider>
+        <Box
+          rounded={"lg"}
+          bg={useColorModeValue("white", "gray.700")}
+          boxShadow={"lg"}
+          p={8}
+        >
+          <Form method="post">
+            <VStack spacing={4} align="flex-start">
+              {/* No se va a usar para las pruebas */}
+              {/* <FormControl id={"firstName"} isRequired>
+                <FormLabel>Nombre de la cuenta </FormLabel>
+                <Input
+                  as={Input}
+                  id={"name"}
+                  name={"name"}
+                  type={"text"}
+                  variant={"outline"}
+                />
+              </FormControl> */}
+              <FormControl isRequired>
+                <FormLabel htmlFor="email">Correo Electronico</FormLabel>
+                <Input
+                  as={Input}
+                  id="email"
+                  name="email"
+                  type="email"
+                  variant="outline"
+                />
+              </FormControl>
+              <FormControl isRequired>
+                <FormLabel>Contraseña</FormLabel>
+                <Input
+                  as={Input}
+                  id="password"
+                  name="password"
+                  type="password"
+                  variant="outline"
+                  validate={(value: any) => {
+                    let error;
+
+                    if (value.length < 5) {
+                      error = "Password must contain at least 6 characters";
+                    }
+
+                    return error;
+                  }}
+                />
+              </FormControl>
+              <Button
+                type="submit"
+                color={"white"}
+                bg={"purple.400"}
+                isFullWidth
+                loadingText="Submitting"
+                size={"lg"}
+                _hover={{ bg: "purple.500" }}
+              >
+                Registrarse
+              </Button>
+              <Text textAlign={"center"}>
+                Already a user? <Link color={"blue.400"}>Login</Link>
+              </Text>
+            </VStack>
+          </Form>
+        </Box>
+      </Stack>
+    </Flex>
   );
 }

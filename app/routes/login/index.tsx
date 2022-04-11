@@ -4,19 +4,39 @@ import {
   FormControl,
   FormLabel,
   Input,
-  Checkbox,
+  InputGroup,
+  HStack,
+  InputRightElement,
   Stack,
-  Link,
   Button,
   Heading,
   Text,
-  useColorModeValue,
   FormErrorMessage,
+  useColorModeValue,
+  Link,
+  VStack,
 } from "@chakra-ui/react";
-import { Field, Formik } from "formik";
+import { useState } from "react";
 import { Form } from "@remix-run/react";
 
-export default function SimpleCard() {
+import { signIn, signUp } from "~/utils/db.server";
+import { createUserSession } from "~/utils/session.server";
+
+import { Link as Linka } from "@remix-run/react";
+export let action = async ({ request }) => {
+  let formData = await request.formData();
+
+  let email = formData.get("email");
+  let password = formData.get("password");
+
+  const { user } = await signIn(email, password);
+  const token = await user.getIdToken();
+  return createUserSession(token, "/");
+};
+
+export default function SignupCard() {
+  const [showPassword, setShowPassword] = useState(false);
+
   return (
     <Flex minH={"100vh"} align={"center"} justify={"center"} mt={"-16"}>
       <Stack spacing={8} mx={"auto"} maxW={"lg"} py={12} px={6}>
@@ -24,8 +44,12 @@ export default function SimpleCard() {
           <Heading fontSize={"4xl"} textAlign={"center"}>
             Sign in to your account
           </Heading>
-          <Text fontSize={"lg"} color={"gray.600"}>
-            to enjoy all of our cool <Link color={"blue.400"}>features</Link> ✌️
+          <Text
+            fontSize={"lg"}
+            color={"gray.600"}
+            textAlign={{ sm: "center", base: "center" }}
+          >
+            to enjoy all of our cool <Link color={"blue.400"}>features</Link>
           </Text>
         </Stack>
         <Box
@@ -34,78 +58,67 @@ export default function SimpleCard() {
           boxShadow={"lg"}
           p={8}
         >
-          {/* Inicio de formik */}
-          <Formik
-            initialValues={{ email: "", password: "", rememberMe: false }}
-            onSubmit={(values) => {
-              alert(JSON.stringify(values, null, 2));
-            }}
-          >
-            {({ handleSubmit, errors, touched }) => (
-              <Form onSubmit={handleSubmit}>
-                <Stack spacing={4}>
-                  <FormControl id="email" isRequired>
-                    <FormLabel htmlFor="email">Email address</FormLabel>
-                    <Field
-                      as={Input}
-                      id="email"
-                      name="email"
-                      type="email"
-                      variant="outline"
-                    />
-                  </FormControl>
-                  <FormControl
-                    id="password"
-                    isInvalid={!!errors.password && touched.password}
-                    isRequired
-                  >
-                    <FormLabel>Password</FormLabel>
-                    <Field
-                      type="password"
-                      as={Input}
-                      id="password"
-                      name="password"
-                      variant="outline"
-                      validate={(value: any) => {
-                        let error;
+          <Form method="post">
+            <VStack spacing={4} align="flex-start">
+              {/* No se va a usar para las pruebas */}
+              {/* <FormControl id={"firstName"} isRequired>
+                  <FormLabel>Nombre de la cuenta </FormLabel>
+                  <Input
+                    as={Input}
+                    id={"name"}
+                    name={"name"}
+                    type={"text"}
+                    variant={"outline"}
+                  />
+                </FormControl> */}
+              <FormControl isRequired>
+                <FormLabel htmlFor="email">Correo Electronico</FormLabel>
+                <Input
+                  as={Input}
+                  id="email"
+                  name="email"
+                  type="email"
+                  variant="outline"
+                />
+              </FormControl>
+              <FormControl isRequired>
+                <FormLabel>Contraseña</FormLabel>
+                <Input
+                  as={Input}
+                  id="password"
+                  name="password"
+                  type="password"
+                  variant="outline"
+                  validate={(value: any) => {
+                    let error;
 
-                        if (value.length < 5) {
-                          error = "Password must contain at least 6 characters";
-                        }
+                    if (value.length < 5) {
+                      error = "Password must contain at least 6 characters";
+                    }
 
-                        return error;
-                      }}
-                    />
-                    <FormErrorMessage>{errors.password}</FormErrorMessage>
-                  </FormControl>
-
-                  <Stack spacing={10}>
-                    <Stack
-                      direction={{ base: "column", sm: "row" }}
-                      align={"start"}
-                      justify={"space-between"}
-                    >
-                      <Field as={Checkbox} id="rememberMe" name="rememberMe">
-                        Remember me?
-                      </Field>
-                      <Link color={"blue.400"}>Forgot password?</Link>
-                    </Stack>
-                    <Button
-                      bg={"blue.400"}
-                      color={"white"}
-                      _hover={{
-                        bg: "blue.500",
-                      }}
-                      loadingText="Submitting"
-                      type="submit"
-                    >
-                      Sign in
-                    </Button>
-                  </Stack>
-                </Stack>
-              </Form>
-            )}
-          </Formik>
+                    return error;
+                  }}
+                />
+              </FormControl>
+              <Button
+                type="submit"
+                color={"white"}
+                bg={"purple.400"}
+                isFullWidth
+                loadingText="Submitting"
+                size={"lg"}
+                _hover={{ bg: "purple.500" }}
+              >
+                Ingresar
+              </Button>
+              <Text textAlign={"center"}>
+                New user?{" "}
+                <Linka to={"/register"}>
+                  <Link color={"blue.400"}>Register</Link>
+                </Linka>
+              </Text>
+            </VStack>
+          </Form>
         </Box>
       </Stack>
     </Flex>
